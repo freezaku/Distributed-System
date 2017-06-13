@@ -1,0 +1,309 @@
+{\rtf1\ansi\ansicpg936\cocoartf1404\cocoasubrtf470
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fmodern\fcharset0 Courier;\f2\fnil\fcharset134 PingFangSC-Regular;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;\red83\green104\blue112;
+\red252\green244\blue220;\red112\green130\blue132;\red2\green32\blue41;\red0\green0\blue233;\red66\green146\blue34;
+}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid1\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid1}
+{\list\listtemplateid2\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid101\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid2}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}{\listoverride\listid2\listoverridecount0\ls2}}
+\margl1440\margr1440\vieww12180\viewh13460\viewkind0
+\deftab720
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\f0\b\fs28 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Part I: Map/Reduce input and output\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\b0\fs24 \cf2 \cb3 fix the sequential implementation\
+
+\b\fs28 \cb1 \
+\pard\pardeftab720\sl280\partightenfactor0
+
+\b0\fs24 \cf2 \cb3 1. Task: the code we give you is missing two crucial pieces: \
+(1) the function that divides up the output of a map task, \
+\pard\pardeftab720\sl320\partightenfactor0
+
+\f1\fs28 \cf4 \cb5 \strokec4 doMap()
+\f0\fs24 \cf2 \cb3 \strokec2 function in 
+\f1\fs28 \cf4 \cb5 \strokec4 common_map.go
+\f0\fs24 \cf2 \cb3 \strokec2 \
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 (2) the function that gathers all the inputs for a reduce task\
+\pard\pardeftab720\sl320\partightenfactor0
+
+\f1\fs28 \cf4 \cb5 \strokec4 doReduce()
+\f0\fs24 \cf2 \cb3 \strokec2  function in 
+\f1\fs28 \cf4 \cb5 \strokec4 common_reduce.go\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\f0\fs24 \cf2 \cb3 \strokec2 \
+2. Test: checks the correctness of your implementation, these tests are implemented in the file 
+\f1\fs28 \cf4 \cb5 \strokec4 test_test.go\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\fs26 \cf6 \cb7 \strokec6 $ cd 6.824\
+$ export "GOPATH=$PWD"  # go needs $GOPATH to be set to the project's working directory\
+$ cd "$GOPATH/src/mapreduce"\
+$ go test -run Sequential\
+ok  	mapreduce	2.694s\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\f0\fs24 \cf2 \cb3 \strokec2 \
+3. Bug: If the output did not show 
+\i ok
+\i0  next to the tests, your implementation has a bug in it.\
+    Debug: set 
+\f1\fs28 \cf4 \cb5 \strokec4 debugEnabled = true
+\f0\fs24 \cf2 \cb3 \strokec2  in 
+\f1\fs28 \cf4 \cb5 \strokec4 common.go
+\f0\fs24 \cf2 \cb3 \strokec2 , and add 
+\f1\fs28 \cf4 \cb5 \strokec4 -v 
+\f0\fs24 \cf2 \cb3 \strokec2 to the test command above\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ env "GOPATH=$PWD/../../" go test -v -run Sequential\
+=== RUN   TestSequentialSingle\
+master: Starting Map/Reduce task test\
+Merge: read mrtmp.test-res-0\
+master: Map/Reduce task completed\
+--- PASS: TestSequentialSingle (1.34s)\
+=== RUN   TestSequentialMany\
+master: Starting Map/Reduce task test\
+Merge: read mrtmp.test-res-0\
+Merge: read mrtmp.test-res-1\
+Merge: read mrtmp.test-res-2\
+master: Map/Reduce task completed\
+--- PASS: TestSequentialMany (1.33s)\
+PASS\
+ok  	mapreduce	2.672s\
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\f0\b\fs28 \cf2 \cb1 \strokec2 \
+Part II: Single-worker word count\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\b0\fs24 \cf2 \cb3 1. Task: find empty 
+\f1\fs28 \cf4 \cb5 \strokec4 mapF()
+\f0\fs24 \cf2 \cb3 \strokec2  and 
+\f1\fs28 \cf4 \cb5 \strokec4 reduceF()
+\f0\fs24 \cf2 \cb3 \strokec2  functions. Your job is to insert code so that 
+\f1\fs28 \cf4 \cb5 \strokec4 wc.go
+\f0\fs24 \cf2 \cb3 \strokec2  reports the number of occurrences of each word in its input.\
+\
+2. Test I: \cb1 There are some input files with pathnames of the form 
+\f1\fs28 \cf4 \cb5 \strokec4 pg-*.txt
+\f0\fs24 \cf2 \cb1 \strokec2  in ~/6.824/src/main, downloaded from {\field{\*\fldinst{HYPERLINK "https://www.gutenberg.org/ebooks/search/%3Fsort_order%3Ddownloads"}}{\fldrslt \cf8 \ul \ulc8 \strokec8 Project Gutenberg}}. Here's how to run 
+\f1\fs28 \cf4 \cb5 \strokec4 wc
+\f0\fs24 \cf2 \cb1 \strokec2  with the input files:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ cd 6.824\
+$ export "GOPATH=$PWD"\
+$ cd "$GOPATH/src/main"\
+$ go run wc.go master sequential pg-*.txt\
+# command-line-arguments\
+./wc.go:14: missing return at end of function\
+./wc.go:21: missing return at end of function\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\f0\b\fs28 \cf2 \cb1 \strokec2 \
+\pard\pardeftab720\sl280\partightenfactor0
+
+\b0\fs24 \cf2 \cb3 3. Hint\
+(1) Your 
+\f1\fs28 \cf4 \cb5 \strokec4 mapF()
+\f0\fs24 \cf2 \cb3 \strokec2  will be passed the name of a file, as well as that file's contents; it should split the contents into words, and return a Go slice of 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce.KeyValue
+\f0\fs24 \cf2 \cb3 \strokec2 . While you can choose what to put in the keys and values for the 
+\f1\fs28 \cf4 \cb5 \strokec4 mapF
+\f0\fs24 \cf2 \cb3 \strokec2  output, for word count it only makes sense to use words as the keys. \
+(2) Your 
+\f1\fs28 \cf4 \cb5 \strokec4 reduceF()
+\f0\fs24 \cf2 \cb3 \strokec2  will be called once for each key, with a slice of all the values generated by 
+\f1\fs28 \cf4 \cb5 \strokec4 mapF()
+\f0\fs24 \cf2 \cb3 \strokec2  for that key. It must return a string containing the total number of occurences of the key.\
+(3) Hint URL\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
+\ls1\ilvl0\cf9 \cb1 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec9 a good read on what strings are in Go is the {\field{\*\fldinst{HYPERLINK "http://blog.golang.org/strings"}}{\fldrslt \cf8 \ul \ulc8 \strokec8 Go Blog on strings}}.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec9 you can use {\field{\*\fldinst{HYPERLINK "http://golang.org/pkg/strings/#FieldsFunc"}}{\fldrslt 
+\f1\fs28 \cf4 \cb5 \ul \ulc4 \strokec4 strings.FieldsFunc}} to split a string into components.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec9 the strconv package ({\field{\*\fldinst{HYPERLINK "http://golang.org/pkg/strconv/"}}{\fldrslt \cf8 \ul \ulc8 \strokec8 http://golang.org/pkg/strconv/}}) is handy to convert strings to integers etc.\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\b\fs28 \cf2 \strokec2 \
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf2 4. Test II: You can test your solution using:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ cd "$GOPATH/src/main"\
+$ time go run wc.go master sequential pg-*.txt\
+master: Starting Map/Reduce task wcseq\
+Merge: read mrtmp.wcseq-res-0\
+Merge: read mrtmp.wcseq-res-1\
+Merge: read mrtmp.wcseq-res-2\
+master: Map/Reduce task completed\
+14.59user 3.78system 0:14.81elapsed\
+
+\f0\fs24 \cf2 \cb1 \strokec2 Correct Answer:\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+\cf2 The output will be in the file "mrtmp.wcseq". Your implementation is correct if the following command produces the output shown here:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ sort -n -k2 mrtmp.wcseq | tail -10\
+he: 34077\
+was: 37044\
+that: 37495\
+I: 44502\
+in: 46092\
+a: 60558\
+to: 74357\
+of: 79727\
+and: 93990\
+the: 154024\
+
+\f0\fs24 \cf2 \cb1 \strokec2 Remove Output:\
+\pard\pardeftab720\sl280\partightenfactor0
+\cf2 \cb3 You can remove the output file and all intermediate files with:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ rm mrtmp.*\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\f0\fs24 \cf2 \cb1 \strokec2 Easy Test:\
+\cb3 To make testing easy for you, run:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ bash ./test-wc.sh\
+
+\f0\fs24 \cf2 \cb1 \strokec2 \
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\b\fs28 \cf2 Part III: Distributing MapReduce tasks\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\b0\fs24 \cf2 \cb3 you will complete a version of MapReduce that splits the work over a set of worker threads that run in parallel on multiple cores
+\f2 . 
+\f0 Your implementation will use RPC to simulate distributed computation.\
+code in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce/master.go
+\f0\fs24 \cf2 \cb3 \strokec2  does most of the work of managing a MapReduce job\
+code for a worker thread, in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce/worker.go\
+
+\f0\fs24 \cf2 \cb3 \strokec2 code to deal with RPC in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce/common_rpc.go
+\f0\fs24 \cf2 \cb3 \strokec2 \
+\
+Your solution to Part III should only involve modifications to 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule.go
+\f0\fs24 \cf2 \cb3 \strokec2 . \
+\
+1. Task\
+implement 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf2 \cb3 \strokec2  in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce/schedule.go\
+
+\f0\fs24 \cf2 \cb3 \strokec2 (1) The master calls 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf2 \cb3 \strokec2  twice during a MapReduce job, once for the Map phase, and once for the Reduce phase.\
+(2) 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf2 \cb3 \strokec2 's job is to hand out tasks to the available workers. \
+(3) 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf2 \cb3 \strokec2  must give each worker a sequence of tasks, one at a time. 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf2 \cb3 \strokec2  should wait until all tasks have completed, and then return.\
+
+\f2 (4) 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf2 \cb3 \strokec2  tells a worker to execute a task by sending a 
+\f1\fs28 \cf4 \cb5 \strokec4 Worker.DoTask
+\f0\fs24 \cf2 \cb3 \strokec2  RPC to the worker.	\
+(5) Use the 
+\f1\fs28 \cf4 \cb5 \strokec4 call()
+\f0\fs24 \cf2 \cb3 \strokec2  function in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce/common_rpc.go
+\f0\fs24 \cf2 \cb3 \strokec2  to send an RPC to a worker. The first argument is the the worker's address, as read from 
+\f1\fs28 \cf4 \cb5 \strokec4 registerChan
+\f0\fs24 \cf2 \cb3 \strokec2 . The second argument should be 
+\f1\fs28 \cf4 \cb5 \strokec4 "Worker.DoTask"
+\f0\fs24 \cf2 \cb3 \strokec2 . The third argument should be the 
+\f1\fs28 \cf4 \cb5 \strokec4 DoTaskArgs
+\f0\fs24 \cf2 \cb3 \strokec2  structure, and the last argument should be 
+\f1\fs28 \cf4 \cb5 \strokec4 nil
+\f0\fs24 \cf2 \cb3 \strokec2 .
+\b\fs28 \cb1 \
+\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\b0\fs24 \cf2 \cb3 2. Test: To test your solution, you should use the same Go test suite as you did in Part I, but replace 
+\f1\fs28 \cf4 \cb5 \strokec4 -run Sequential
+\f0\fs24 \cf2 \cb3 \strokec2  with 
+\f1\fs28 \cf4 \cb5 \strokec4 -run TestBasic
+\f0\fs24 \cf2 \cb3 \strokec2 . \
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ go test -run TestBasic\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\f0\fs24 \cf2 \cb3 \strokec2 \
+3. Hint\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
+\ls2\ilvl0\cf8 \cb1 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}{\field{\*\fldinst{HYPERLINK "https://golang.org/pkg/net/rpc/"}}{\fldrslt \expnd0\expndtw0\kerning0
+\ul \outl0\strokewidth0 \strokec8 RPC package}}\cf9 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec9  documents the Go RPC package.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl320\partightenfactor0
+\ls2\ilvl0
+\f1\fs28 \cf4 \cb5 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec4 schedule()
+\f0\fs24 \cf9 \cb1 \strokec9  should send RPCs to the workers in parallel so that the workers can work on tasks concurrently. You will find the 
+\f1\fs28 \cf4 \cb5 \strokec4 go
+\f0\fs24 \cf9 \cb1 \strokec9 statement useful for this purpose; see {\field{\*\fldinst{HYPERLINK "http://golang.org/doc/effective_go.html#concurrency"}}{\fldrslt \cf8 \ul \ulc8 \strokec8 Concurrency in Go}}.\
+\ls2\ilvl0
+\f1\fs28 \cf4 \cb5 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec4 schedule()
+\f0\fs24 \cf9 \cb1 \strokec9  must wait for a worker to finish before it can give it another task. You may find Go's channels useful.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
+\ls2\ilvl0\cf9 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec9 You may find {\field{\*\fldinst{HYPERLINK "https://golang.org/pkg/sync/#WaitGroup"}}{\fldrslt \cf8 \ul \ulc8 \strokec8 sync.WaitGroup}} useful.\
+\ls2\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec9 The easiest way to track down bugs is to insert print state statements (perhaps calling 
+\f1\fs28 \cf4 \cb5 \strokec4 debug()
+\f0\fs24 \cf9 \cb1 \strokec9  in 
+\f1\fs28 \cf4 \cb5 \strokec4 common.go
+\f0\fs24 \cf9 \cb1 \strokec9 ), collect the output in a file with 
+\f1\fs28 \cf4 \cb5 \strokec4 go test -run TestBasic > out
+\f0\fs24 \cf9 \cb1 \strokec9 , and then think about whether the output matches your understanding of how your code should behave. The last step (thinking) is the most important.\
+\ls2\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec9 To check if your code has race conditions, run Go's {\field{\*\fldinst{HYPERLINK "https://golang.org/doc/articles/race_detector.html"}}{\fldrslt \cf8 \ul \ulc8 \strokec8 race detector}}with your test: 
+\f1\fs28 \cf4 \cb5 \strokec4 go test -race -run TestBasic > out
+\f0\fs24 \cf9 \cb1 \strokec9 .\
+\ls2\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec9 \
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\b\fs28 \cf2 \strokec2 \
+Part IV: Handling worker failures\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\b0\fs24 \cf2 \cb3 1. Task\
+If the master's RPC to the worker fails, the master should re-assign the task given to the failed worker to another worker. It may happen that two workers receive the same task, compute it, and generate output. \
+\
+2. Test\
+Your implementation must pass the two remaining test cases in 
+\f1\fs28 \cf4 \cb5 \strokec4 test_test.go
+\f0\fs24 \cf2 \cb3 \strokec2 . \
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ go test -run Failure\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\f0\fs24 \cf9 \cb1 \strokec9 \
+}
