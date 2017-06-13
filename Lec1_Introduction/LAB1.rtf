@@ -1,0 +1,616 @@
+{\rtf1\ansi\ansicpg936\cocoartf1404\cocoasubrtf470
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue233;\red0\green0\blue0;\red83\green104\blue112;
+\red252\green244\blue220;\red112\green130\blue132;\red2\green32\blue41;\red56\green110\blue165;\red160\green17\blue26;
+\red66\green146\blue34;\red119\green52\blue16;\red255\green255\blue255;\red133\green0\blue2;}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}.}{\leveltext\leveltemplateid1\'02\'00.;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid1}
+{\list\listtemplateid2\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid101\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid2}
+{\list\listtemplateid3\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid201\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid3}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}{\listoverride\listid2\listoverridecount0\ls2}{\listoverride\listid3\listoverridecount0\ls3}}
+\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\sl420\sa298\qc\partightenfactor0
+{\field{\*\fldinst{HYPERLINK "https://pdos.csail.mit.edu/6.824/index.html"}}{\fldrslt 
+\f0\b\fs36 \cf2 \expnd0\expndtw0\kerning0
+\ul \ulc2 \outl0\strokewidth0 \strokec2 6.824}}
+\f0\b\fs36 \cf3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec3  - Spring 2017\
+\pard\pardeftab720\sl560\sa321\qc\partightenfactor0
+
+\fs48 \cf3 6.824 Lab 1: MapReduce\
+\pard\pardeftab720\sl320\sa280\qc\partightenfactor0
+
+\fs28 \cf3 Due: Friday February 17 at 11:59pm\
+\pard\pardeftab720\sl280\sa120\partightenfactor0
+
+\b0\fs24 \cf3 \
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\b\fs28 \cf3 Introduction\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf3 In this lab you'll build a MapReduce library as an introduction to programming in Go and to building fault tolerant distributed systems. In the first part you will write a simple MapReduce program. In the second part you will write a Master that hands out tasks to MapReduce workers, and handles failures of workers. The interface to the library and the approach to fault tolerance is similar to the one described in the original {\field{\*\fldinst{HYPERLINK "http://research.google.com/archive/mapreduce-osdi04.pdf"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 MapReduce paper}}.\
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\b\fs28 \cf3 Collaboration Policy\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf3 You must write all the code you hand in for 6.824, except for code that we give you as part of the assignment. You are not allowed to look at anyone else's solution, and you are not allowed to look at solutions from previous years. You may discuss the assignments with other students, but you may not look at or copy each others' code. The reason for this rule is that we believe you will learn the most by designing and implementing your lab solution code yourself.\
+Please do not publish your code or make it available to current or future 6.824 students.
+\f1\fs28 \cf4 \cb5 \strokec4 github.com
+\f0\fs24 \cf3 \cb1 \strokec3  repositories are public by default, so please don't put your code there unless you make the repository private. You may find it convenient to use {\field{\*\fldinst{HYPERLINK "https://github.mit.edu/"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 MIT's GitHub}}, but be sure to create a private repository.\
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\b\fs28 \cf3 Software\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf3 You'll implement this lab (and all the labs) in {\field{\*\fldinst{HYPERLINK "http://www.golang.org/"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 Go}}. The Go web site contains lots of tutorial information which you may want to look at. It's probably most convenient for you to install Go on your own computer and do your development there. You can also use Go on Athena. We will grade your labs using Go version 1.7; you should use 1.7 too, though we don't know of any problems with other versions.\
+We supply you with parts of a MapReduce implementation that supports both distributed and non-distributed operation (just the boring bits). You'll fetch the initial lab software with {\field{\*\fldinst{HYPERLINK "https://git-scm.com/"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 git}} (a version control system). To learn more about git, look at the {\field{\*\fldinst{HYPERLINK "https://git-scm.com/book/en/v2"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 Pro Git book}} or the {\field{\*\fldinst{HYPERLINK "http://www.kernel.org/pub/software/scm/git/docs/user-manual.html"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 git user's manual}}, or, if you are already familiar with other version control systems, you may find this {\field{\*\fldinst{HYPERLINK "http://eagain.net/articles/git-for-computer-scientists/"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 CS-oriented overview of git}} useful.\
+If you use Athena, you must use an x86 or x86_64 Athena machine; that is, 
+\f1\fs28 \cf4 \cb5 \strokec4 uname -a
+\f0\fs24 \cf3 \cb1 \strokec3  should mention 
+\f1\fs28 \cf4 \cb5 \strokec4 i386 GNU/Linux
+\f0\fs24 \cf3 \cb1 \strokec3  or 
+\f1\fs28 \cf4 \cb5 \strokec4 i686 GNU/Linux
+\f0\fs24 \cf3 \cb1 \strokec3  or 
+\f1\fs28 \cf4 \cb5 \strokec4 x86_64 GNU/Linux
+\f0\fs24 \cf3 \cb1 \strokec3 . You can log into a public i686 Athena host with 
+\f1\fs28 \cf4 \cb5 \strokec4 ssh athena.dialup.mit.edu
+\f0\fs24 \cf3 \cb1 \strokec3 . On Athena you should run these commands first:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 athena$ add git\
+athena$ setup ggo_v1.7\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf3 \cb1 \strokec3 The URL for the course git repository is 
+\f1\fs28 \cf4 \cb5 \strokec4 git://g.csail.mit.edu/6.824-golabs-2017
+\f0\fs24 \cf3 \cb1 \strokec3 . To install the files in your directory, you need to 
+\i clone
+\i0  the course repository, by running the commands below.\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ git clone git://g.csail.mit.edu/6.824-golabs-2017 6.824\
+$ cd 6.824\
+$ ls\
+Makefile src\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf3 \cb1 \strokec3 Git allows you to keep track of the changes you make to the code. For example, if you want to checkpoint your progress, you can 
+\i commit
+\i0  your changes by running:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ git commit -am 'partial solution to lab 1'\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf3 \cb1 \strokec3 The Map/Reduce implementation we give you has support for two modes of operation, 
+\i sequential
+\i0  and 
+\i distributed
+\i0 . In the former, the map and reduce tasks are executed one at a time: first, the first map task is executed to completion, then the second, then the third, etc. When all the map tasks have finished, the first reduce task is run, then the second, etc. This mode, while not very fast, is useful for debugging. The distributed mode runs many worker threads that first execute map tasks in parallel, and then reduce tasks. This is much faster, but also harder to implement and debug.\
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\b\fs28 \cf3 Preamble: Getting familiar with the source\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf3 The mapreduce package provides a simple Map/Reduce library. Applications should normally call Distributed() [located in master.go] to start a job, but may instead call Sequential() [also in master.go] to get a sequential execution for debugging.\
+The code executes a job as follows:\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
+\ls1\ilvl0\cf3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	1.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec3 The application provides a number of input files, a map function, a reduce function, and the number of reduce tasks (
+\f1\fs28 \cf4 \cb5 \strokec4 nReduce
+\f0\fs24 \cf3 \cb1 \strokec3 ).\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	2.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec3 A master is created with this knowledge. It starts an RPC server (see 
+\f1\fs28 \cf4 \cb5 \strokec4 master_rpc.go
+\f0\fs24 \cf3 \cb1 \strokec3 ), and waits for workers to register (using the RPC call 
+\f1\fs28 \cf4 \cb5 \strokec4 Register()
+\f0\fs24 \cf3 \cb1 \strokec3  [defined in 
+\f1\fs28 \cf4 \cb5 \strokec4 master.go
+\f0\fs24 \cf3 \cb1 \strokec3 ]). As tasks become available (in steps 4 and 5), 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3  [
+\f1\fs28 \cf4 \cb5 \strokec4 schedule.go
+\f0\fs24 \cf3 \cb1 \strokec3 ] decides how to assign those tasks to workers, and how to handle worker failures.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	3.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec3 The master considers each input file to be one map task, and calls 
+\f1\fs28 \cf4 \cb5 \strokec4 doMap()
+\f0\fs24 \cf3 \cb1 \strokec3 [
+\f1\fs28 \cf4 \cb5 \strokec4 common_map.go
+\f0\fs24 \cf3 \cb1 \strokec3 ] at least once for each map task. It does so either directly (when using
+\f1\fs28 \cf4 \cb5 \strokec4 Sequential()
+\f0\fs24 \cf3 \cb1 \strokec3 ) or by issuing the 
+\f1\fs28 \cf4 \cb5 \strokec4 DoTask
+\f0\fs24 \cf3 \cb1 \strokec3  RPC to a worker [
+\f1\fs28 \cf4 \cb5 \strokec4 worker.go
+\f0\fs24 \cf3 \cb1 \strokec3 ]. Each call to
+\f1\fs28 \cf4 \cb5 \strokec4 doMap()
+\f0\fs24 \cf3 \cb1 \strokec3  reads the appropriate file, calls the map function on that file's contents, and writes the resulting key/value pairs to 
+\f1\fs28 \cf4 \cb5 \strokec4 nReduce
+\f0\fs24 \cf3 \cb1 \strokec3  intermediate files. 
+\f1\fs28 \cf4 \cb5 \strokec4 doMap()
+\f0\fs24 \cf3 \cb1 \strokec3  hashes each key to pick the intermediate file and thus the reduce task that will process the key. There will be 
+\f1\fs28 \cf4 \cb5 \strokec4 nMap
+\f0\fs24 \cf3 \cb1 \strokec3  x 
+\f1\fs28 \cf4 \cb5 \strokec4 nReduce
+\f0\fs24 \cf3 \cb1 \strokec3  files after all map tasks are done. Each file name contains a prefix, the map task number, and the reduce task number. If there are two map tasks and three reduce tasks, the map tasks will create these six intermediate files:
+\f1\fs26 \cf6 \cb7 \strokec6 mrtmp.xxx-0-0\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl300\partightenfactor0
+\ls1\ilvl0\cf6 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	4.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 mrtmp.xxx-0-1\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	5.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 mrtmp.xxx-0-2\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	6.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 mrtmp.xxx-1-0\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	7.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 mrtmp.xxx-1-1\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	8.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 mrtmp.xxx-1-2\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	9.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 \uc0\u8232 
+\f0\fs24 \cf3 \cb1 \strokec3 Each worker must be able to read files written by any other worker, as well as the input files. Real deployments use distributed storage systems such as GFS to allow this access even though workers run on different machines. In this lab you'll run all the workers on the same machine, and use the local file system.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
+\ls1\ilvl0\cf3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	10.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec3 The master next calls 
+\f1\fs28 \cf4 \cb5 \strokec4 doReduce()
+\f0\fs24 \cf3 \cb1 \strokec3  [
+\f1\fs28 \cf4 \cb5 \strokec4 common_reduce.go
+\f0\fs24 \cf3 \cb1 \strokec3 ] at least once for each reduce task. As with 
+\f1\fs28 \cf4 \cb5 \strokec4 doMap()
+\f0\fs24 \cf3 \cb1 \strokec3 , it does so either directly or through a worker. The 
+\f1\fs28 \cf4 \cb5 \strokec4 doReduce()
+\f0\fs24 \cf3 \cb1 \strokec3  for reduce task 
+\f1\fs28 \cf4 \cb5 \strokec4 r
+\f0\fs24 \cf3 \cb1 \strokec3  collects the 
+\f1\fs28 \cf4 \cb5 \strokec4 r
+\f0\fs24 \cf3 \cb1 \strokec3 'th intermediate file from each map task, and calls the reduce function for each key that appears in those files. The reduce tasks produce 
+\f1\fs28 \cf4 \cb5 \strokec4 nReduce
+\f0\fs24 \cf3 \cb1 \strokec3  result files.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	11.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec3 The master calls 
+\f1\fs28 \cf4 \cb5 \strokec4 mr.merge()
+\f0\fs24 \cf3 \cb1 \strokec3  [
+\f1\fs28 \cf4 \cb5 \strokec4 master_splitmerge.go
+\f0\fs24 \cf3 \cb1 \strokec3 ], which merges all the 
+\f1\fs28 \cf4 \cb5 \strokec4 nReduce
+\f0\fs24 \cf3 \cb1 \strokec3 files produced by the previous step into a single output.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	12.	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec3 The master sends a Shutdown RPC to each of its workers, and then shuts down its own RPC server.\
+\pard\pardeftab720\li240\ri240\sl280\sa240\partightenfactor0
+\cf8 \strokec8 Over the course of the following exercises, you will have to write/modify 
+\f1\fs28 \cf4 \cb5 \strokec4 doMap
+\f0\fs24 \cf8 \cb1 \strokec8 , 
+\f1\fs28 \cf4 \cb5 \strokec4 doReduce
+\f0\fs24 \cf8 \cb1 \strokec8 , and 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule
+\f0\fs24 \cf8 \cb1 \strokec8  yourself. These are located in 
+\f1\fs28 \cf4 \cb5 \strokec4 common_map.go
+\f0\fs24 \cf8 \cb1 \strokec8 , 
+\f1\fs28 \cf4 \cb5 \strokec4 common_reduce.go
+\f0\fs24 \cf8 \cb1 \strokec8 , and 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule.go
+\f0\fs24 \cf8 \cb1 \strokec8  respectively. You will also have to write the map and reduce functions in 
+\f1\fs28 \cf4 \cb5 \strokec4 ../main/wc.go
+\f0\fs24 \cf8 \cb1 \strokec8 .\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+\cf3 \strokec3 You should not need to modify any other files, but reading them might be useful in order to understand how the other methods fit into the overall architecture of the system.\
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\b\fs28 \cf3 Part I: Map/Reduce input and output\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf3 The Map/Reduce implementation you are given is missing some pieces. Before you can write your first Map/Reduce function pair, you will need to fix the sequential implementation. In particular, the code we give you is missing two crucial pieces: the function that divides up the output of a map task, and the function that gathers all the inputs for a reduce task. These tasks are carried out by the 
+\f1\fs28 \cf4 \cb5 \strokec4 doMap()
+\f0\fs24 \cf3 \cb1 \strokec3  function in 
+\f1\fs28 \cf4 \cb5 \strokec4 common_map.go
+\f0\fs24 \cf3 \cb1 \strokec3 , and the 
+\f1\fs28 \cf4 \cb5 \strokec4 doReduce()
+\f0\fs24 \cf3 \cb1 \strokec3  function in
+\f1\fs28 \cf4 \cb5 \strokec4 common_reduce.go
+\f0\fs24 \cf3 \cb1 \strokec3  respectively. The comments in those files should point you in the right direction.\
+To help you determine if you have correctly implemented 
+\f1\fs28 \cf4 \cb5 \strokec4 doMap()
+\f0\fs24 \cf3 \cb1 \strokec3  and 
+\f1\fs28 \cf4 \cb5 \strokec4 doReduce()
+\f0\fs24 \cf3 \cb1 \strokec3 , we have provided you with a Go test suite that checks the correctness of your implementation. These tests are implemented in the file 
+\f1\fs28 \cf4 \cb5 \strokec4 test_test.go
+\f0\fs24 \cf3 \cb1 \strokec3 . To run the tests for the sequential implementation that you have now fixed, run:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ cd 6.824\
+$ export "GOPATH=$PWD"  # go needs $GOPATH to be set to the project's working directory\
+$ cd "$GOPATH/src/mapreduce"\
+$ go test -run Sequential\
+ok  	mapreduce	2.694s\
+\pard\pardeftab720\li240\ri240\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf9 \cb1 \strokec9 You receive full credit for this part if your software passes the Sequential tests (as run by the command above) when we run your software on our machines.\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+\cf3 \strokec3 If the output did not show 
+\i ok
+\i0  next to the tests, your implementation has a bug in it. To give more verbose output, set 
+\f1\fs28 \cf4 \cb5 \strokec4 debugEnabled = true
+\f0\fs24 \cf3 \cb1 \strokec3  in 
+\f1\fs28 \cf4 \cb5 \strokec4 common.go
+\f0\fs24 \cf3 \cb1 \strokec3 , and add 
+\f1\fs28 \cf4 \cb5 \strokec4 -v
+\f0\fs24 \cf3 \cb1 \strokec3  to the test command above. You will get much more output along the lines of:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ env "GOPATH=$PWD/../../" go test -v -run Sequential\
+=== RUN   TestSequentialSingle\
+master: Starting Map/Reduce task test\
+Merge: read mrtmp.test-res-0\
+master: Map/Reduce task completed\
+--- PASS: TestSequentialSingle (1.34s)\
+=== RUN   TestSequentialMany\
+master: Starting Map/Reduce task test\
+Merge: read mrtmp.test-res-0\
+Merge: read mrtmp.test-res-1\
+Merge: read mrtmp.test-res-2\
+master: Map/Reduce task completed\
+--- PASS: TestSequentialMany (1.33s)\
+PASS\
+ok  	mapreduce	2.672s\
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\f0\b\fs28 \cf3 \cb1 \strokec3 Part II: Single-worker word count\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf3 Now you will implement word count \'97 a simple Map/Reduce example. Look in 
+\f1\fs28 \cf4 \cb5 \strokec4 main/wc.go
+\f0\fs24 \cf3 \cb1 \strokec3 ; you'll find empty 
+\f1\fs28 \cf4 \cb5 \strokec4 mapF()
+\f0\fs24 \cf3 \cb1 \strokec3  and 
+\f1\fs28 \cf4 \cb5 \strokec4 reduceF()
+\f0\fs24 \cf3 \cb1 \strokec3  functions. Your job is to insert code so that 
+\f1\fs28 \cf4 \cb5 \strokec4 wc.go
+\f0\fs24 \cf3 \cb1 \strokec3 reports the number of occurrences of each word in its input. A word is any contiguous sequence of letters, as determined by {\field{\*\fldinst{HYPERLINK "http://golang.org/pkg/unicode/#IsLetter"}}{\fldrslt 
+\f1\fs28 \cf4 \cb5 \ul \ulc4 \strokec4 unicode.IsLetter}}.\
+There are some input files with pathnames of the form 
+\f1\fs28 \cf4 \cb5 \strokec4 pg-*.txt
+\f0\fs24 \cf3 \cb1 \strokec3  in ~/6.824/src/main, downloaded from {\field{\*\fldinst{HYPERLINK "https://www.gutenberg.org/ebooks/search/%3Fsort_order%3Ddownloads"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 Project Gutenberg}}. Here's how to run 
+\f1\fs28 \cf4 \cb5 \strokec4 wc
+\f0\fs24 \cf3 \cb1 \strokec3  with the input files:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ cd 6.824\
+$ export "GOPATH=$PWD"\
+$ cd "$GOPATH/src/main"\
+$ go run wc.go master sequential pg-*.txt\
+# command-line-arguments\
+./wc.go:14: missing return at end of function\
+./wc.go:21: missing return at end of function\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf3 \cb1 \strokec3 The compilation fails because 
+\f1\fs28 \cf4 \cb5 \strokec4 mapF()
+\f0\fs24 \cf3 \cb1 \strokec3  and 
+\f1\fs28 \cf4 \cb5 \strokec4 reduceF()
+\f0\fs24 \cf3 \cb1 \strokec3  are not complete.\
+Review Section 2 of the {\field{\*\fldinst{HYPERLINK "http://research.google.com/archive/mapreduce-osdi04.pdf"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 MapReduce paper}}. Your 
+\f1\fs28 \cf4 \cb5 \strokec4 mapF()
+\f0\fs24 \cf3 \cb1 \strokec3  and 
+\f1\fs28 \cf4 \cb5 \strokec4 reduceF()
+\f0\fs24 \cf3 \cb1 \strokec3  functions will differ a bit from those in the paper's Section 2.1. Your 
+\f1\fs28 \cf4 \cb5 \strokec4 mapF()
+\f0\fs24 \cf3 \cb1 \strokec3  will be passed the name of a file, as well as that file's contents; it should split the contents into words, and return a Go slice of 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce.KeyValue
+\f0\fs24 \cf3 \cb1 \strokec3 . While you can choose what to put in the keys and values for the 
+\f1\fs28 \cf4 \cb5 \strokec4 mapF
+\f0\fs24 \cf3 \cb1 \strokec3 output, for word count it only makes sense to use words as the keys. Your 
+\f1\fs28 \cf4 \cb5 \strokec4 reduceF()
+\f0\fs24 \cf3 \cb1 \strokec3  will be called once for each key, with a slice of all the values generated by 
+\f1\fs28 \cf4 \cb5 \strokec4 mapF()
+\f0\fs24 \cf3 \cb1 \strokec3  for that key. It must return a string containing the total number of occurences of the key.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
+\ls2\ilvl0\cf10 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec10 a good read on what strings are in Go is the {\field{\*\fldinst{HYPERLINK "http://blog.golang.org/strings"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 Go Blog on strings}}.\
+\ls2\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec10 you can use {\field{\*\fldinst{HYPERLINK "http://golang.org/pkg/strings/#FieldsFunc"}}{\fldrslt 
+\f1\fs28 \cf4 \cb5 \ul \ulc4 \strokec4 strings.FieldsFunc}} to split a string into components.\
+\ls2\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec10 the strconv package ({\field{\*\fldinst{HYPERLINK "http://golang.org/pkg/strconv/"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 http://golang.org/pkg/strconv/}}) is handy to convert strings to integers etc.\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+\cf3 \strokec3 You can test your solution using:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ cd "$GOPATH/src/main"\
+$ time go run wc.go master sequential pg-*.txt\
+master: Starting Map/Reduce task wcseq\
+Merge: read mrtmp.wcseq-res-0\
+Merge: read mrtmp.wcseq-res-1\
+Merge: read mrtmp.wcseq-res-2\
+master: Map/Reduce task completed\
+14.59user 3.78system 0:14.81elapsed\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf3 \cb1 \strokec3 The output will be in the file "mrtmp.wcseq". Your implementation is correct if the following command produces the output shown here:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ sort -n -k2 mrtmp.wcseq | tail -10\
+he: 34077\
+was: 37044\
+that: 37495\
+I: 44502\
+in: 46092\
+a: 60558\
+to: 74357\
+of: 79727\
+and: 93990\
+the: 154024\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf3 \cb1 \strokec3 You can remove the output file and all intermediate files with:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ rm mrtmp.*\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf3 \cb1 \strokec3 To make testing easy for you, run:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ bash ./test-wc.sh\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf3 \cb1 \strokec3 and it will report if your solution is correct or not.\
+\pard\pardeftab720\li240\ri240\sl280\sa240\partightenfactor0
+\cf9 \strokec9 You receive full credit for this part if your Map/Reduce word count output matches the correct output for the sequential execution above when we run your software on our machines.\
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\b\fs28 \cf3 \strokec3 Part III: Distributing MapReduce tasks\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf3 Your current implementation runs the map and reduce tasks one at a time. One of Map/Reduce's biggest selling points is that it can automatically parallelize ordinary sequential code without any extra work by the developer. In this part of the lab, you will complete a version of MapReduce that splits the work over a set of worker threads that run in parallel on multiple cores. While not distributed across multiple machines as in real Map/Reduce deployments, your implementation will use RPC to simulate distributed computation.\
+The code in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce/master.go
+\f0\fs24 \cf3 \cb1 \strokec3  does most of the work of managing a MapReduce job. We also supply you with the complete code for a worker thread, in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce/worker.go
+\f0\fs24 \cf3 \cb1 \strokec3 , as well as some code to deal with RPC in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce/common_rpc.go
+\f0\fs24 \cf3 \cb1 \strokec3 .\
+Your job is to implement 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3  in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce/schedule.go
+\f0\fs24 \cf3 \cb1 \strokec3 . The master calls 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3 twice during a MapReduce job, once for the Map phase, and once for the Reduce phase. 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3 's job is to hand out tasks to the available workers. There will usually be more tasks than worker threads, so 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3  must give each worker a sequence of tasks, one at a time.
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3  should wait until all tasks have completed, and then return.\
+\pard\pardeftab720\sl320\sa240\partightenfactor0
+
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3  learns about the set of workers by reading its 
+\f1\fs28 \cf4 \cb5 \strokec4 registerChan
+\f0\fs24 \cf3 \cb1 \strokec3  argument. That channel yields a string for each worker, containing the worker's RPC address. Some workers may exist before 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3  is called, and some may start while 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3  is running; all will appear on 
+\f1\fs28 \cf4 \cb5 \strokec4 registerChan
+\f0\fs24 \cf3 \cb1 \strokec3 . 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3  should use all the workers, including ones that appear after it starts.\
+
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3  tells a worker to execute a task by sending a 
+\f1\fs28 \cf4 \cb5 \strokec4 Worker.DoTask
+\f0\fs24 \cf3 \cb1 \strokec3  RPC to the worker. This RPC's arguments are defined by 
+\f1\fs28 \cf4 \cb5 \strokec4 DoTaskArgs
+\f0\fs24 \cf3 \cb1 \strokec3  in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce/common_rpc.go
+\f0\fs24 \cf3 \cb1 \strokec3 . The 
+\f1\fs28 \cf4 \cb5 \strokec4 File
+\f0\fs24 \cf3 \cb1 \strokec3 element is only used by Map tasks, and is the name of the file to read; 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule()
+\f0\fs24 \cf3 \cb1 \strokec3  can find these file names in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapFiles
+\f0\fs24 \cf3 \cb1 \strokec3 .\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+\cf3 Use the 
+\f1\fs28 \cf4 \cb5 \strokec4 call()
+\f0\fs24 \cf3 \cb1 \strokec3  function in 
+\f1\fs28 \cf4 \cb5 \strokec4 mapreduce/common_rpc.go
+\f0\fs24 \cf3 \cb1 \strokec3  to send an RPC to a worker. The first argument is the the worker's address, as read from 
+\f1\fs28 \cf4 \cb5 \strokec4 registerChan
+\f0\fs24 \cf3 \cb1 \strokec3 . The second argument should be 
+\f1\fs28 \cf4 \cb5 \strokec4 "Worker.DoTask"
+\f0\fs24 \cf3 \cb1 \strokec3 . The third argument should be the 
+\f1\fs28 \cf4 \cb5 \strokec4 DoTaskArgs
+\f0\fs24 \cf3 \cb1 \strokec3  structure, and the last argument should be 
+\f1\fs28 \cf4 \cb5 \strokec4 nil
+\f0\fs24 \cf3 \cb1 \strokec3 .\
+Your solution to Part III should only involve modifications to 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule.go
+\f0\fs24 \cf3 \cb1 \strokec3 . If you modify other files as part of debugging, please restore their original contents and then test before submitting.\
+To test your solution, you should use the same Go test suite as you did in Part I, but replace 
+\f1\fs28 \cf4 \cb5 \strokec4 -run Sequential
+\f0\fs24 \cf3 \cb1 \strokec3  with 
+\f1\fs28 \cf4 \cb5 \strokec4 -run TestBasic
+\f0\fs24 \cf3 \cb1 \strokec3 . This will execute the distributed test case without worker failures instead of the sequential ones you ran before:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ go test -run TestBasic\
+\pard\pardeftab720\li240\ri240\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf9 \cb1 \strokec9 You receive full credit for this part if your software passes 
+\f1\fs28 \cf4 \cb5 \strokec4 TestBasic
+\f0\fs24 \cf9 \cb1 \strokec9  from 
+\f1\fs28 \cf4 \cb5 \strokec4 test_test.go
+\f0\fs24 \cf9 \cb1 \strokec9  (the test you run with the command above) when we run your software on our machines.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
+\ls3\ilvl0\cf2 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}{\field{\*\fldinst{HYPERLINK "https://golang.org/pkg/net/rpc/"}}{\fldrslt \expnd0\expndtw0\kerning0
+\ul \outl0\strokewidth0 \strokec2 RPC package}}\cf10 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec10  documents the Go RPC package.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl320\partightenfactor0
+\ls3\ilvl0
+\f1\fs28 \cf4 \cb5 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec4 schedule()
+\f0\fs24 \cf10 \cb1 \strokec10  should send RPCs to the workers in parallel so that the workers can work on tasks concurrently. You will find the 
+\f1\fs28 \cf4 \cb5 \strokec4 go
+\f0\fs24 \cf10 \cb1 \strokec10  statement useful for this purpose; see {\field{\*\fldinst{HYPERLINK "http://golang.org/doc/effective_go.html#concurrency"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 Concurrency in Go}}.\
+\ls3\ilvl0
+\f1\fs28 \cf4 \cb5 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec4 schedule()
+\f0\fs24 \cf10 \cb1 \strokec10  must wait for a worker to finish before it can give it another task. You may find Go's channels useful.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sl280\partightenfactor0
+\ls3\ilvl0\cf10 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec10 You may find {\field{\*\fldinst{HYPERLINK "https://golang.org/pkg/sync/#WaitGroup"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 sync.WaitGroup}} useful.\
+\ls3\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec10 The easiest way to track down bugs is to insert print state statements (perhaps calling 
+\f1\fs28 \cf4 \cb5 \strokec4 debug()
+\f0\fs24 \cf10 \cb1 \strokec10  in 
+\f1\fs28 \cf4 \cb5 \strokec4 common.go
+\f0\fs24 \cf10 \cb1 \strokec10 ), collect the output in a file with 
+\f1\fs28 \cf4 \cb5 \strokec4 go test -run TestBasic > out
+\f0\fs24 \cf10 \cb1 \strokec10 , and then think about whether the output matches your understanding of how your code should behave. The last step (thinking) is the most important.\
+\ls3\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\'95	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec10 To check if your code has race conditions, run Go's {\field{\*\fldinst{HYPERLINK "https://golang.org/doc/articles/race_detector.html"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 race detector}} with your test: 
+\f1\fs28 \cf4 \cb5 \strokec4 go test -race -run TestBasic > out
+\f0\fs24 \cf10 \cb1 \strokec10 .\
+\pard\pardeftab720\li240\ri240\sl280\sa240\partightenfactor0
+\cf8 \strokec8 The code we give you runs the workers as threads within a single UNIX process, and can exploit multiple cores on a single machine. Some modifications would be needed in order to run the workers on multiple machines communicating over a network. The RPCs would have to use TCP rather than UNIX-domain sockets; there would need to be a way to start worker processes on all the machines; and all the machines would have to share storage through some kind of network file system.\
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\b\fs28 \cf3 \strokec3 Part IV: Handling worker failures\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf3 In this part you will make the master handle failed workers. MapReduce makes this relatively easy because workers don't have persistent state. If a worker fails, any RPCs that the master issued to that worker will fail (e.g., due to a timeout). Thus, if the master's RPC to the worker fails, the master should re-assign the task given to the failed worker to another worker.\
+An RPC failure doesn't necessarily mean that the worker didn't execute the task; the worker may have executed it but the reply was lost, or the worker may still be executing but the master's RPC timed out. Thus, it may happen that two workers receive the same task, compute it, and generate output. Two invocations of a map or reduce function are required to generate the same output for a given input (i.e. the map and reduce functions are "functional"), so there won't be inconsistencies if subsequent processing sometimes reads one output and sometimes the other. In addition, the MapReduce framework ensures that map and reduce function output appears atomically: the output file will either not exist, or will contain the entire output of a single execution of the map or reduce function (the lab code doesn't actually implement this, but instead only fails workers at the end of a task, so there aren't concurrent executions of a task).\
+\pard\pardeftab720\li240\ri240\sl280\sa240\partightenfactor0
+\cf8 \strokec8 You don't have to handle failures of the master. Making the master fault-tolerant is more difficult because it keeps state that would have to be recovered in order to resume operations after a master failure. Much of the later labs are devoted to this challenge.\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+\cf3 \strokec3 Your implementation must pass the two remaining test cases in 
+\f1\fs28 \cf4 \cb5 \strokec4 test_test.go
+\f0\fs24 \cf3 \cb1 \strokec3 . The first case tests the failure of one worker, while the second test case tests handling of many failures of workers. Periodically, the test cases start new workers that the master can use to make forward progress, but these workers fail after handling a few tasks. To run these tests:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ go test -run Failure\
+\pard\pardeftab720\li240\ri240\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf9 \cb1 \strokec9 You receive full credit for this part if your software passes the tests with worker failures (those run by the command above) when we run your software on our machines.\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+\cf3 \strokec3 Your solution to Part IV should only involve modifications to 
+\f1\fs28 \cf4 \cb5 \strokec4 schedule.go
+\f0\fs24 \cf3 \cb1 \strokec3 . If you modify other files as part of debugging, please restore their original contents and then test before submitting.\
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\b\fs28 \cf3 Part V: Inverted index generation (optional for extra credit)\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf11 \strokec11 For this optional challenge exercise, you will build Map and Reduce functions for generating an 
+\i inverted index
+\i0 .\
+Inverted indices are widely used in computer science, and are particularly useful in document searching. Broadly speaking, an inverted index is a map from interesting facts about the underlying data, to the original location of that data. For example, in the context of search, it might be a map from keywords to documents that contain those words.\
+We have created a second binary in 
+\f1\fs28 \cf4 \cb5 \strokec4 main/ii.go
+\f0\fs24 \cf11 \cb1 \strokec11  that is very similar to the 
+\f1\fs28 \cf4 \cb5 \strokec4 wc.go
+\f0\fs24 \cf11 \cb1 \strokec11  you built earlier. You should modify 
+\f1\fs28 \cf4 \cb5 \strokec4 mapF
+\f0\fs24 \cf11 \cb1 \strokec11  and 
+\f1\fs28 \cf4 \cb5 \strokec4 reduceF
+\f0\fs24 \cf11 \cb1 \strokec11  in 
+\f1\fs28 \cf4 \cb5 \strokec4 main/ii.go
+\f0\fs24 \cf11 \cb1 \strokec11  so that they together produce an inverted index. Running 
+\f1\fs28 \cf4 \cb5 \strokec4 ii.go
+\f0\fs24 \cf11 \cb1 \strokec11  should output a list of tuples, one per line, in the following format:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ go run ii.go master sequential pg-*.txt\
+$ head -n5 mrtmp.iiseq\
+A: 16 pg-being_ernest.txt,pg-dorian_gray.txt,pg-dracula.txt,pg-emma.txt,pg-frankenstein.txt,pg-great_expectations.txt,pg-grimm.txt,pg-huckleberry_finn.txt,pg-les_miserables.txt,pg-metamorphosis.txt,pg-moby_dick.txt,pg-sherlock_holmes.txt,pg-tale_of_two_cities.txt,pg-tom_sawyer.txt,pg-ulysses.txt,pg-war_and_peace.txt\
+ABC: 2 pg-les_miserables.txt,pg-war_and_peace.txt\
+ABOUT: 2 pg-moby_dick.txt,pg-tom_sawyer.txt\
+ABRAHAM: 1 pg-dracula.txt\
+ABSOLUTE: 1 pg-les_miserables.txt\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\f0\fs24 \cf11 \cb1 \strokec11 If it is not clear from the listing above, the format is:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 word: #documents documents,sorted,and,separated,by,commas\
+\pard\pardeftab720\sl280\partightenfactor0
+
+\f0\fs24 \cf11 \cb1 \strokec11 For full credit on this challenge, you must pass 
+\f1\fs28 \cf4 \cb5 \strokec4 bash ./test-ii.sh
+\f0\fs24 \cf11 \cb1 \strokec11 , which runs:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ sort -k1,1 mrtmp.iiseq | sort -snk2,2 mrtmp.iiseq | grep -v '16' | tail -10\
+women: 15 pg-being_ernest.txt,pg-dorian_gray.txt,pg-dracula.txt,pg-emma.txt,pg-frankenstein.txt,pg-great_expectations.txt,pg-huckleberry_finn.txt,pg-les_miserables.txt,pg-metamorphosis.txt,pg-moby_dick.txt,pg-sherlock_holmes.txt,pg-tale_of_two_cities.txt,pg-tom_sawyer.txt,pg-ulysses.txt,pg-war_and_peace.txt\
+won: 15 pg-being_ernest.txt,pg-dorian_gray.txt,pg-dracula.txt,pg-frankenstein.txt,pg-great_expectations.txt,pg-grimm.txt,pg-huckleberry_finn.txt,pg-les_miserables.txt,pg-metamorphosis.txt,pg-moby_dick.txt,pg-sherlock_holmes.txt,pg-tale_of_two_cities.txt,pg-tom_sawyer.txt,pg-ulysses.txt,pg-war_and_peace.txt\
+wonderful: 15 pg-being_ernest.txt,pg-dorian_gray.txt,pg-dracula.txt,pg-emma.txt,pg-frankenstein.txt,pg-great_expectations.txt,pg-grimm.txt,pg-huckleberry_finn.txt,pg-les_miserables.txt,pg-moby_dick.txt,pg-sherlock_holmes.txt,pg-tale_of_two_cities.txt,pg-tom_sawyer.txt,pg-ulysses.txt,pg-war_and_peace.txt\
+words: 15 pg-dorian_gray.txt,pg-dracula.txt,pg-emma.txt,pg-frankenstein.txt,pg-great_expectations.txt,pg-grimm.txt,pg-huckleberry_finn.txt,pg-les_miserables.txt,pg-metamorphosis.txt,pg-moby_dick.txt,pg-sherlock_holmes.txt,pg-tale_of_two_cities.txt,pg-tom_sawyer.txt,pg-ulysses.txt,pg-war_and_peace.txt\
+worked: 15 pg-dorian_gray.txt,pg-dracula.txt,pg-emma.txt,pg-frankenstein.txt,pg-great_expectations.txt,pg-grimm.txt,pg-huckleberry_finn.txt,pg-les_miserables.txt,pg-metamorphosis.txt,pg-moby_dick.txt,pg-sherlock_holmes.txt,pg-tale_of_two_cities.txt,pg-tom_sawyer.txt,pg-ulysses.txt,pg-war_and_peace.txt\
+worse: 15 pg-being_ernest.txt,pg-dorian_gray.txt,pg-dracula.txt,pg-emma.txt,pg-frankenstein.txt,pg-great_expectations.txt,pg-grimm.txt,pg-huckleberry_finn.txt,pg-les_miserables.txt,pg-moby_dick.txt,pg-sherlock_holmes.txt,pg-tale_of_two_cities.txt,pg-tom_sawyer.txt,pg-ulysses.txt,pg-war_and_peace.txt\
+wounded: 15 pg-being_ernest.txt,pg-dorian_gray.txt,pg-dracula.txt,pg-emma.txt,pg-frankenstein.txt,pg-great_expectations.txt,pg-grimm.txt,pg-huckleberry_finn.txt,pg-les_miserables.txt,pg-moby_dick.txt,pg-sherlock_holmes.txt,pg-tale_of_two_cities.txt,pg-tom_sawyer.txt,pg-ulysses.txt,pg-war_and_peace.txt\
+yes: 15 pg-being_ernest.txt,pg-dorian_gray.txt,pg-dracula.txt,pg-emma.txt,pg-great_expectations.txt,pg-grimm.txt,pg-huckleberry_finn.txt,pg-les_miserables.txt,pg-metamorphosis.txt,pg-moby_dick.txt,pg-sherlock_holmes.txt,pg-tale_of_two_cities.txt,pg-tom_sawyer.txt,pg-ulysses.txt,pg-war_and_peace.txt\
+younger: 15 pg-being_ernest.txt,pg-dorian_gray.txt,pg-dracula.txt,pg-emma.txt,pg-frankenstein.txt,pg-great_expectations.txt,pg-grimm.txt,pg-huckleberry_finn.txt,pg-les_miserables.txt,pg-moby_dick.txt,pg-sherlock_holmes.txt,pg-tale_of_two_cities.txt,pg-tom_sawyer.txt,pg-ulysses.txt,pg-war_and_peace.txt\
+yours: 15 pg-being_ernest.txt,pg-dorian_gray.txt,pg-dracula.txt,pg-emma.txt,pg-frankenstein.txt,pg-great_expectations.txt,pg-grimm.txt,pg-huckleberry_finn.txt,pg-les_miserables.txt,pg-moby_dick.txt,pg-sherlock_holmes.txt,pg-tale_of_two_cities.txt,pg-tom_sawyer.txt,pg-ulysses.txt,pg-war_and_peace.txt\
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\f0\b\fs28 \cf3 \cb1 \strokec3 Running all tests\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf3 You can run all the tests by running the script 
+\f1\fs28 \cf4 \cb5 \strokec4 src/main/test-mr.sh
+\f0\fs24 \cf3 \cb1 \strokec3 . With a correct solution, your output should resemble:\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ bash ./test-mr.sh\
+==> Part I\
+ok  	mapreduce	3.053s\
+\
+==> Part II\
+Passed test\
+\
+==> Part III\
+ok  	mapreduce	1.851s\
+\
+==> Part IV\
+ok  	mapreduce	10.650s\
+\
+==> Part V (challenge)\
+Passed test\
+\pard\pardeftab720\sl320\sa280\partightenfactor0
+
+\f0\b\fs28 \cf3 \cb1 \strokec3 Handin procedure\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\b0\fs24 \cf12 \cb13 \strokec12 Before submitting, please run 
+\i all
+\i0  the tests one final time.\cb1 \
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ bash ./test-mr.sh\
+\pard\pardeftab720\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf3 \cb1 \strokec3 Submit your code via the class's submission website, located at{\field{\*\fldinst{HYPERLINK "https://6824.scripts.mit.edu/2017/handin.py/"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 https://6824.scripts.mit.edu/2017/handin.py/}}.\
+You may use your MIT Certificate or request an API key via email to log in for the first time. Your API key (
+\f1\fs28 \cf4 \cb5 \strokec4 XXX
+\f0\fs24 \cf3 \cb1 \strokec3 ) is displayed once you logged in, which can be used to upload lab1 from the console as follows.\
+\pard\pardeftab720\sl300\partightenfactor0
+
+\f1\fs26 \cf6 \cb7 \strokec6 $ cd "$GOPATH"\
+$ echo XXX > api.key\
+$ make lab1\
+\pard\pardeftab720\li240\ri240\sl280\sa240\partightenfactor0
+
+\f0\fs24 \cf12 \cb13 \strokec12 Check the submission website to make sure you submitted a working lab!\
+\pard\pardeftab720\li240\ri240\sl280\sa240\partightenfactor0
+\cf8 \cb1 \strokec8 You may submit multiple times. We will use the timestamp of your 
+\b last
+\b0 submission for the purpose of calculating late days.\
+\pard\pardeftab720\sl280\sa120\partightenfactor0
+\cf3 \strokec3 \
+\pard\pardeftab720\sl280\partightenfactor0
+
+\i \cf3 Please post questions on {\field{\*\fldinst{HYPERLINK "http://piazza.com/"}}{\fldrslt \cf2 \ul \ulc2 \strokec2 Piazza}}.\
+}
