@@ -45,6 +45,7 @@ func doMap(
 	// Remember to close the file after you have written all the values!
 
 	file, err := os.Open(inFile)
+
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -54,6 +55,35 @@ func doMap(
 		fmt.Println(err)
 	}
 
+	contents := make([]byte, info.Size())
+
+	file.Read(contents)
+	file.Close()
+
+	kv := mapF(file, string(contents))
+	filesEncoders := make([]*json.Encoder, nReduce)
+	files := make([]*os.File, nReduce)
+
+	for i := range filesEncoders {
+		oneFile, err := os.Create(reduceName(jobName, mapTask, i))
+		if err != nil {
+			fmt.Printf("Fail to create file %s", reduceName(jobName, mapTask, nReduce))
+		} else {
+			filesEncoders[i] = json.NewEncoder(oneFile)
+			files[i] = oneFile
+		}
+	}
+
+	for _, value := range kv {
+		err := filesEncoders[ihash(value.Key)%uint32(nReduce)].Encode(&value)
+		if err != nil {
+			fmt.Printf("Fail encode %s", value)
+		}
+	}
+
+	for _, f := range files {
+		f.Close()
+	}
 }
 
 func ihash(s string) uint32 {
