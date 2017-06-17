@@ -24,7 +24,7 @@ func mapF(document string, value string) (res []mapreduce.KeyValue) {
 	words := strings.FieldsFunc(value, f)
 
 	for _, word := range words {
-		kv := mapreduce.KeyValue(word, "1")
+		kv := mapreduce.KeyValue{word, "1"}
 		res = append(res, kv)
 	}
 
@@ -37,7 +37,7 @@ func mapF(document string, value string) (res []mapreduce.KeyValue) {
 func reduceF(key string, values []string) string {
 	// TODO: you also have to write this function
 	sum := 0
-	for _, v := values {
+	for _, v := range values {
 		i, _ := strconv.Atoi(v)
 		sum += i
 	}
