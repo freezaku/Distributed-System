@@ -36,6 +36,13 @@ func mapF(document string, value string) (res []mapreduce.KeyValue) {
 // should be a single output value for that key.
 func reduceF(key string, values []string) string {
 	// TODO: you also have to write this function
+	sum := 0
+	for _, v := values {
+		i, _ := strconv.Atoi(v)
+		sum += i
+	}
+
+	return strconv.Itoa(sum)
 }
 
 // Can be run in 3 ways:

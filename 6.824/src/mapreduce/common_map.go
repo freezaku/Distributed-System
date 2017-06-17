@@ -60,14 +60,14 @@ func doMap(
 	file.Read(contents)
 	file.Close()
 
-	kv := mapF(file, string(contents))
+	kv := mapF(inFile, string(contents))
 	filesEncoders := make([]*json.Encoder, nReduce)
 	files := make([]*os.File, nReduce)
 
 	for i := range filesEncoders {
-		oneFile, err := os.Create(reduceName(jobName, mapTask, i))
+		oneFile, err := os.Create(reduceName(jobName, mapTaskNumber, i))
 		if err != nil {
-			fmt.Printf("Fail to create file %s", reduceName(jobName, mapTask, nReduce))
+			fmt.Printf("Fail to create file %s", reduceName(jobName, mapTaskNumber, nReduce))
 		} else {
 			filesEncoders[i] = json.NewEncoder(oneFile)
 			files[i] = oneFile
